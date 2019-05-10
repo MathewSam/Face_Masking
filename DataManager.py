@@ -14,14 +14,14 @@ class DataHandler:
             folder_name: name of folder containing the images
         '''
         assert isinstance(folder_name,str),"Please enter valid name for location of images. Input must be a string input"
-        assert os._isdir(folder_name),"Please enter valid name for location of images. Input must be name of folder with images"
+        #assert os._isdir(folder_name),"Please enter valid name for location of images. Input must be name of folder with images"
 
         self.root = folder_name
         self.filenames = os.listdir(folder_name)
         self.filenames.sort()
 
         image = cv2.imread(self.root + self.filenames[0])
-        self.r = cv2.selectROI(image)
+        self.r = list(cv2.selectROI(image))
         self.template = image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])]
         cv2.imshow("Template", self.template)
         self.template = self.template[:,:,::-1]#Convert BGR to RGB
@@ -34,12 +34,21 @@ class DataHandler:
                 continue
             else:
                 image = plt.imread(self.root + file_name)
+                masked = image.copy()
                 result = match_template(image, self.template)
                 ij = np.unravel_index(np.argmax(result), result.shape)
                 self.r[1] = ij[0]
                 self.r[0] = ij[1]
-                self.template = image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])].copy()
-                image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])] = np.zeros_like(image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])])
-                plt.imsave(self.root + file_name,image)
+                #self.template = image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])].copy()
+                #import pdb;pdb.set_trace()
+                try:
+                    masked[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])] = 0
+                except:
+                    print("Failure in image {}".format(file_name))
+                plt.imsave(self.root + file_name,masked)
+                
                 
 
+if __name__== "__main__":
+    handler = DataHandler("./images/")
+    handler.iterative_search()
