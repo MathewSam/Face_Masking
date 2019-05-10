@@ -1,0 +1,45 @@
+import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+from skimage.feature import match_template
+import cv2
+
+class DataHandler:
+    def __init__(self,folder_name):
+        '''
+        Initializes the data handler to scan the dataset to extract locations where the person is present.
+        Args:
+            self: pointer pointing to current instance of the class
+            folder_name: name of folder containing the images
+        '''
+        assert isinstance(folder_name,str),"Please enter valid name for location of images. Input must be a string input"
+        assert os._isdir(folder_name),"Please enter valid name for location of images. Input must be name of folder with images"
+
+        self.root = folder_name
+        self.filenames = os.listdir(folder_name)
+        self.filenames.sort()
+
+        image = cv2.imread(self.root + self.filenames[0])
+        self.r = cv2.selectROI(image)
+        self.template = image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])]
+        cv2.imshow("Template", self.template)
+        self.template = self.template[:,:,::-1]#Convert BGR to RGB
+        cv2.waitKey(0)
+
+    def iterative_search(self):
+
+        for index,file_name in enumerate(self.filenames):
+            if index==0:
+                continue
+            else:
+                image = plt.imread(self.root + file_name)
+                result = match_template(image, self.template)
+                ij = np.unravel_index(np.argmax(result), result.shape)
+                self.r[1] = ij[0]
+                self.r[0] = ij[1]
+                self.template = image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])].copy()
+                image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])] = np.zeros_like(image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])])
+                plt.imsave(self.root + file_name,image)
+                
+
