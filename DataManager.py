@@ -51,6 +51,7 @@ class DataHandler:
                     masked[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])] = 0
                 except:
                     print("Failure in image {}".format(file_name))
+		    plt.imsave("./failuer/" + file_name,masked)
                 plt.imsave("./masked/" + file_name,masked)
                 
                 
