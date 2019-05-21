@@ -28,24 +28,30 @@ class DataHandler:
         cv2.waitKey(0)
 
     def iterative_search(self):
-
+        '''
+        Function that carries out masking of the image
+        Args:
+            self: pointer to the current instance of the class
+        '''
         for index,file_name in enumerate(self.filenames):
             if index==0:
                 continue
             else:
                 image = plt.imread(self.root + file_name)
+                temp = image[int(self.r[1]-100):int(self.r[1]+self.r[3]+100), int(self.r[0]-100):int(self.r[0]+self.r[2]+100)]
                 masked = image.copy()
-                result = match_template(image, self.template)
+                result = match_template(temp, self.template)
                 ij = np.unravel_index(np.argmax(result), result.shape)
-                self.r[1] = ij[0]
-                self.r[0] = ij[1]
+                #import pdb;pdb.set_trace()
+                self.r[1] = self.r[1]-100 + ij[0]
+                self.r[0] = self.r[0]-100 + ij[1]
                 #self.template = image[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])].copy()
                 #import pdb;pdb.set_trace()
                 try:
                     masked[int(self.r[1]):int(self.r[1]+self.r[3]), int(self.r[0]):int(self.r[0]+self.r[2])] = 0
                 except:
                     print("Failure in image {}".format(file_name))
-                plt.imsave(self.root + file_name,masked)
+                plt.imsave("./masked/" + file_name,masked)
                 
                 
 
